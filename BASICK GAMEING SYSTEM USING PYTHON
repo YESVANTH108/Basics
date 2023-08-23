@@ -1,0 +1,48 @@
+import random
+
+# Player class
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.health = 100
+        self.attack_power = 20
+
+    def attack(self, enemy):
+        damage = random.randint(0, self.attack_power)
+        enemy.health -= damage
+        print(f"{self.name} attacked {enemy.name} for {damage} damage!")
+
+# Enemy class
+class Enemy:
+    def __init__(self, name):
+        self.name = name
+        self.health = 50
+        self.attack_power = 10
+
+    def attack(self, player):
+        damage = random.randint(0, self.attack_power)
+        player.health -= damage
+        print(f"{self.name} attacked {player.name} for {damage} damage!")
+
+# Game loop
+def game_loop():
+    player_name = input("Enter your player name: ")
+    player = Player(player_name)
+    enemy = Enemy("Monster")
+
+    while player.health > 0 and enemy.health > 0:
+        action = input("Do you want to attack? (yes/no): ")
+        if action.lower() == "yes":
+            player.attack(enemy)
+            enemy.attack(player)
+            print(f"Player Health: {player.health}, Enemy Health: {enemy.health}")
+        else:
+            print("Invalid action. Choose 'yes' to attack.")
+
+    if player.health <= 0:
+        print("Game Over. You lost.")
+    else:
+        print("Congratulations! You defeated the enemy.")
+
+# Start the game loop
+game_loop()
