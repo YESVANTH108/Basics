@@ -1,0 +1,76 @@
+import sqlite3
+import datetime
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Connect to the SQLite database
+conn = sqlite3.connect('lpg_bookings.db')
+cursor = conn.cursor()
+
+# Create a table for customer information if it doesn't exist
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS customers (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        email TEXT,
+        phone TEXT
+    )
+''')
+
+# Create a table for booking history if it doesn't exist
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS bookings (
+        id INTEGER PRIMARY KEY,
+        customer_id INTEGER,
+        booking_date TEXT,
+        status TEXT
+    )
+''')
+
+# Function to send booking confirmation via email
+def send_booking_confirmation(email, booking_id):
+    # Set up the SMTP server
+    smtp_server = 'smtp.example.com'
+    smtp_port = 587
+    smtp_username = 'your_username'
+    smtp_password = 'your_password'
+
+    # Create the email content
+    subject = 'LPG Booking Confirmation'
+    body = f'Your booking with ID {booking_id} has been confirmed.'
+    
+    msg = MIMEMultipart()
+    msg['From'] = smtp_username
+    msg['To'] = email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+    
+    # Connect to the SMTP server and send the email
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.sendmail(smtp_username, email, msg.as_string())
+
+# Function to automatically make a booking
+def make_booking(customer_id):
+    booking_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    booking_status = 'Confirmed'
+    cursor.execute('INSERT INTO bookings (customer_id, booking_date, status) VALUES (?, ?, ?)',
+                   (customer_id, booking_date, booking_status))
+    conn.commit()
+    booking_id = cursor.lastrowid
+    return booking_id
+
+# Simulating the process
+def main():
+    # Assume customer details are already stored in the database with an ID
+    customer_id = 1  # Change this to the appropriate customer ID
+
+    # Make a booking for the customer
+    booking_id = make_booking(customer_id)
+    send_booking_confirmation('customer@example.com', booking_id)  # Change to customer's email
+    
+if __name__ == "__main__":
+    main()
